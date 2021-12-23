@@ -1,8 +1,7 @@
 import debug from 'debug'
 const general = debug("War >")
-const speed = 100
-let order = 0
-const arrange_rounds: any[] = ['none', 'First', 'Second', 'Third', 'Fourth', 'Fifth', 'sixth', 'Seventh', 'Eighth', 'Ninth', 'tenth',]
+const speed = 500
+let round = 0
 let winner: string;
 
 class Force {
@@ -29,7 +28,7 @@ class Force {
 
     async attack(enemy: Force): Promise<boolean> {
         if (this.amIDead() || enemy.amIDead()) {
-            this.log(`I can not :(${enemy.name}`);
+            this.log(`I can't attack to ${enemy.name}`);
             return false;
         }
         this.log(`I'm attacking to ${enemy.name} ...`);
@@ -101,30 +100,28 @@ class Team {
 
 
     public async attack(enemy: Team): Promise<void> {
-        this.log(`Attacking to ${enemy.name}`);
-        for (let i = 0; i < this.forces.length; i++) {
-            if (this.Defeated()) {
-                this.log("We are losing");
-                general(`The winner is: ${enemy.name}`);
-                return;
+        if (this.aliveForces().length != 0 && enemy.aliveForces().length != 0) {
+            this.log(`Attacking to ${enemy.name}`);
+            for (let i = 0; i < this.forces.length; i++) {
+                const randomEnemy: number = Math.floor(
+                    Math.random() * enemy.forces.length
+                );
+                if (this.forces[i].damage > 0) {
+                    await this.forces[i].attack(this.forces[randomEnemy]);
+                } else if (!enemy.forces[randomEnemy].amIDead()) {
+                    await this.forces[i].attack(enemy.forces[randomEnemy]);
+                }
             }
-            const randomEnemy: number = Math.floor(
-                Math.random() * enemy.forces.length
-            );
-            if (this.forces[i].damage > 0) {
-                await this.forces[i].attack(this.forces[randomEnemy]);
-            } else {
-                await this.forces[i].attack(enemy.forces[randomEnemy]);
-            }
-        }
-        order += 1
-        general(`>>>End of the ${arrange_rounds[order]} round<<<\nRemaining forces:\n${this.name}:${this.aliveForces().length}\n${enemy.name}:${enemy.aliveForces().length}`);
+            round += 1
+            general(`>>>End of round ${round}<<<\nRemaining forces:\n${this.name}:${this.aliveForces().length}\n${enemy.name}:${enemy.aliveForces().length}`);
 
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve();
-            }, speed);
-        });
+
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve();
+                }, speed);
+            });
+        }
     }
 
     setname() {
@@ -155,7 +152,6 @@ async function startWar(timeout = 5) {
             const team4 = new Team("T4", [], 'peaceful')
             const team5 = new Team("T5", [], 'Militant')
             const teams = [team1, team2, team3, team4, team5]
-
             for (let index = 0; index < teams.length; index++) {
                 const element = teams[index];
                 element.setname()
@@ -163,31 +159,31 @@ async function startWar(timeout = 5) {
             }
 
             // while (!team1.Defeated() && !team2.Defeated() && !team3.Defeated() && !team4.Defeated() && !team5.Defeated()) {
-            while ((teams.filter(_team => _team.Defeated() == false)).length != 1) {
+            while ((teams.filter(_team => !_team.Defeated())).length != 1) {
                 const r = Math.floor(Math.random() * 12)
-                if (r == 1) {
+                if (r == 0) {
                     await team1.attack(team2)
-                } else if (r == 2) {
+                } else if (r == 1) {
                     await team3.attack(team1)
-                } else if (r == 3) {
+                } else if (r == 2) {
                     await team5.attack(team1)
-                } else if (r == 4) {
+                } else if (r == 3) {
                     await team1.attack(team3)
-                } else if (r == 5) {
+                } else if (r == 4) {
                     await team3.attack(team2)
-                } else if (r == 6) {
+                } else if (r == 5) {
                     await team5.attack(team2)
-                } else if (r == 7) {
+                } else if (r == 6) {
                     await team1.attack(team4)
-                } else if (r == 8) {
+                } else if (r == 7) {
                     await team3.attack(team4)
-                } else if (r == 9) {
+                } else if (r == 8) {
                     await team5.attack(team3)
-                } else if (r == 10) {
+                } else if (r == 9) {
                     await team1.attack(team5)
-                } else if (r == 11) {
+                } else if (r == 10) {
                     await team3.attack(team5)
-                } else if (r == 12) {
+                } else if (r == 11) {
                     await team5.attack(team4)
                 }
             }
@@ -211,10 +207,10 @@ async function startWar(timeout = 5) {
 
             if (team1.Defeated() && team2.Defeated() && team3.Defeated() && team4.Defeated() && team5.Defeated()) {
                 general("All heroes are passed aways from both tribes :(");
-                general(`\n    (War Summary)\n\nNumber of rounds: ${order}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)`)
+                general(`\n    (War Summary)\n\nNumber of rounds: ${round}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)`)
             } else
                 general(`X=> ( THE WAR IS END ) <=X\n\n    W . I . N . N . E . R\n      ⊱⊱⊱⊱⊱( ${winner} )⊰⊰⊰⊰⊰\n`);
-            general(`\n    (War Summary)\n\nNumber of rounds: ${order}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)`)
+            general(`\n    (War Summary)\n\nNumber of rounds: ${round}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)`)
         }
 
     }, 1000);

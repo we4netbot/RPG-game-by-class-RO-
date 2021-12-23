@@ -14,9 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const debug_1 = __importDefault(require("debug"));
 const general = (0, debug_1.default)("War >");
-const speed = 100;
-let order = 0;
-const arrange_rounds = ['none', 'First', 'Second', 'Third', 'Fourth', 'Fifth', 'sixth', 'Seventh', 'Eighth', 'Ninth', 'tenth',];
+const speed = 500;
+let round = 0;
 let winner;
 class Force {
     constructor(name, ability, health, xp, damage) {
@@ -39,7 +38,7 @@ class Force {
     attack(enemy) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.amIDead() || enemy.amIDead()) {
-                this.log(`I can not :(${enemy.name}`);
+                this.log(`I can't attack to ${enemy.name}`);
                 return false;
             }
             this.log(`I'm attacking to ${enemy.name} ...`);
@@ -108,28 +107,25 @@ class Team {
     }
     attack(enemy) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.log(`Attacking to ${enemy.name}`);
-            for (let i = 0; i < this.forces.length; i++) {
-                if (this.Defeated()) {
-                    this.log("We are losing");
-                    general(`The winner is: ${enemy.name}`);
-                    return;
+            if (this.aliveForces().length != 0 && enemy.aliveForces().length != 0) {
+                this.log(`Attacking to ${enemy.name}`);
+                for (let i = 0; i < this.forces.length; i++) {
+                    const randomEnemy = Math.floor(Math.random() * enemy.forces.length);
+                    if (this.forces[i].damage > 0) {
+                        yield this.forces[i].attack(this.forces[randomEnemy]);
+                    }
+                    else if (!enemy.forces[randomEnemy].amIDead()) {
+                        yield this.forces[i].attack(enemy.forces[randomEnemy]);
+                    }
                 }
-                const randomEnemy = Math.floor(Math.random() * enemy.forces.length);
-                if (this.forces[i].damage > 0) {
-                    yield this.forces[i].attack(this.forces[randomEnemy]);
-                }
-                else {
-                    yield this.forces[i].attack(enemy.forces[randomEnemy]);
-                }
+                round += 1;
+                general(`>>>End of round ${round}<<<\nRemaining forces:\n${this.name}:${this.aliveForces().length}\n${enemy.name}:${enemy.aliveForces().length}`);
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve();
+                    }, speed);
+                });
             }
-            order += 1;
-            general(`>>>End of the ${arrange_rounds[order]} round<<<\nRemaining forces:\n${this.name}:${this.aliveForces().length}\n${enemy.name}:${enemy.aliveForces().length}`);
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve();
-                }, speed);
-            });
         });
     }
     setname() {
@@ -164,42 +160,42 @@ function startWar(timeout = 5) {
                     element.forces.push(new Soldier(`soldier(${element.name})`), new Sniper(`sniper(${element.name})`), new Assassin(`assassin(${element.name})`), new Doctor(`doctor(${element.name})`));
                 }
                 // while (!team1.Defeated() && !team2.Defeated() && !team3.Defeated() && !team4.Defeated() && !team5.Defeated()) {
-                while ((teams.filter(_team => _team.Defeated() == false)).length != 1) {
+                while ((teams.filter(_team => !_team.Defeated())).length != 1) {
                     const r = Math.floor(Math.random() * 12);
-                    if (r == 1) {
+                    if (r == 0) {
                         yield team1.attack(team2);
                     }
-                    else if (r == 2) {
+                    else if (r == 1) {
                         yield team3.attack(team1);
                     }
-                    else if (r == 3) {
+                    else if (r == 2) {
                         yield team5.attack(team1);
                     }
-                    else if (r == 4) {
+                    else if (r == 3) {
                         yield team1.attack(team3);
                     }
-                    else if (r == 5) {
+                    else if (r == 4) {
                         yield team3.attack(team2);
                     }
-                    else if (r == 6) {
+                    else if (r == 5) {
                         yield team5.attack(team2);
                     }
-                    else if (r == 7) {
+                    else if (r == 6) {
                         yield team1.attack(team4);
                     }
-                    else if (r == 8) {
+                    else if (r == 7) {
                         yield team3.attack(team4);
                     }
-                    else if (r == 9) {
+                    else if (r == 8) {
                         yield team5.attack(team3);
                     }
-                    else if (r == 10) {
+                    else if (r == 9) {
                         yield team1.attack(team5);
                     }
-                    else if (r == 11) {
+                    else if (r == 10) {
                         yield team3.attack(team5);
                     }
-                    else if (r == 12) {
+                    else if (r == 11) {
                         yield team5.attack(team4);
                     }
                 }
@@ -220,11 +216,11 @@ function startWar(timeout = 5) {
                 const maxxp = allforces[allxp.indexOf(Math.max(...allxp))];
                 if (team1.Defeated() && team2.Defeated() && team3.Defeated() && team4.Defeated() && team5.Defeated()) {
                     general("All heroes are passed aways from both tribes :(");
-                    general(`\n    (War Summary)\n\nNumber of rounds: ${order}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)`);
+                    general(`\n    (War Summary)\n\nNumber of rounds: ${round}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)`);
                 }
                 else
                     general(`X=> ( THE WAR IS END ) <=X\n\n    W . I . N . N . E . R\n      ⊱⊱⊱⊱⊱( ${winner} )⊰⊰⊰⊰⊰\n`);
-                general(`\n    (War Summary)\n\nNumber of rounds: ${order}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)`);
+                general(`\n    (War Summary)\n\nNumber of rounds: ${round}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)`);
             }
         }), 1000);
     });
