@@ -13,8 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const debug_1 = __importDefault(require("debug"));
-const general = (0, debug_1.default)("War >");
-const speed = 500;
+const general = (0, debug_1.default)("War>");
+const speed = 1000;
 let round = 0;
 let winner;
 class Force {
@@ -48,7 +48,7 @@ class Force {
                 this.log(`I'm kill ${enemy.name} (+100xp)`);
             }
             else {
-                this.log(`enemy health: ${enemy.health}`);
+                general(`enemy health: ${enemy.health}`);
             }
             return new Promise((resolve) => {
                 setTimeout(() => {
@@ -77,7 +77,7 @@ class Doctor extends Force {
             this.bandage--;
             enemy.health += this.damage;
             this.xp += 50;
-            this.log(`teammate health:(${enemy.health})`);
+            general(`teammate health:(${enemy.health})`);
             return new Promise((resolve) => {
                 setTimeout(() => {
                     resolve(true);
@@ -119,7 +119,7 @@ class Team {
                     }
                 }
                 round += 1;
-                general(`>>>End of round ${round}<<<\nRemaining forces:\n${this.name}:${this.aliveForces().length}\n${enemy.name}:${enemy.aliveForces().length}`);
+                general(`>>> End of round ${round} <<<\nRemaining forces:\n${this.name}:${this.aliveForces().length}\n${enemy.name}:${enemy.aliveForces().length}`);
                 return new Promise((resolve) => {
                     setTimeout(() => {
                         resolve();
@@ -147,7 +147,8 @@ function startWar(timeout = 5) {
             general(`In ${timeout--}`);
             if (timeout < 0) {
                 clearInterval(interval);
-                general(">>>War Started!<<<");
+                general(">>> War Started! <<<");
+                general(`Adding forces to teams...`);
                 const team1 = new Team("T1", [], 'Militant');
                 const team2 = new Team("T2", [], 'peaceful');
                 const team3 = new Team("T3", [], 'Militant');
@@ -159,7 +160,6 @@ function startWar(timeout = 5) {
                     element.setname();
                     element.forces.push(new Soldier(`soldier(${element.name})`), new Sniper(`sniper(${element.name})`), new Assassin(`assassin(${element.name})`), new Doctor(`doctor(${element.name})`));
                 }
-                // while (!team1.Defeated() && !team2.Defeated() && !team3.Defeated() && !team4.Defeated() && !team5.Defeated()) {
                 while ((teams.filter(_team => !_team.Defeated())).length != 1) {
                     const r = Math.floor(Math.random() * 12);
                     if (r == 0) {
@@ -201,7 +201,7 @@ function startWar(timeout = 5) {
                 }
                 teams.forEach((index) => {
                     if (index.Defeated() == false) {
-                        winner = index.name;
+                        winner = index;
                     }
                 });
                 const allforces = [];
@@ -216,11 +216,12 @@ function startWar(timeout = 5) {
                 const maxxp = allforces[allxp.indexOf(Math.max(...allxp))];
                 if (team1.Defeated() && team2.Defeated() && team3.Defeated() && team4.Defeated() && team5.Defeated()) {
                     general("All heroes are passed aways from both tribes :(");
-                    general(`\n    (War Summary)\n\nNumber of rounds: ${round}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)`);
+                    general(`Number of rounds: ${round}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)`);
                 }
                 else
-                    general(`X=> ( THE WAR IS END ) <=X\n\n    W . I . N . N . E . R\n      ⊱⊱⊱⊱⊱( ${winner} )⊰⊰⊰⊰⊰\n`);
-                general(`\n    (War Summary)\n\nNumber of rounds: ${round}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)`);
+                    general(`Winner Type: ${winner.type}\n`);
+                general(`X=> ( THE WAR IS END ) <=X\n\n    W . I . N . N . E . R\n      ⊱⊱⊱⊱⊱( ${winner.name} )⊰⊰⊰⊰⊰\n`);
+                general(`\n    (War Summary)\n\nNumber of rounds: ${round}\nExperienced hero: ${maxxp.name}(${maxxp.xp}xp)(${maxxp.ability})`);
             }
         }), 1000);
     });
